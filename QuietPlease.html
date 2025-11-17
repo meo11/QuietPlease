@@ -1,0 +1,1076 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Quiet Please – Voice-Free Chat (Two Users)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      :root {
+        --bg: #020617;
+        --bg-soft: #0b1120;
+        --bg-card: #020617;
+        --accent: #22c55e;
+        --accent-soft: rgba(34, 197, 94, 0.15);
+        --accent-urgent: #ef4444;
+        --text: #e5e7eb;
+        --text-muted: #9ca3af;
+        --border: #1f2937;
+        --radius-lg: 18px;
+        --radius-md: 12px;
+        --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.6);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background: radial-gradient(
+          circle at top,
+          #1e293b 0,
+          #020617 45%,
+          #000 100%
+        );
+        color: var(--text);
+        display: flex;
+        justify-content: center;
+        align-items: stretch;
+        padding: 16px;
+      }
+
+      .app-shell {
+        width: 100%;
+        max-width: 1200px;
+        background: linear-gradient(
+          135deg,
+          #020617 0,
+          #020617 50%,
+          #030712 100%
+        );
+        border-radius: 28px;
+        border: 1px solid #111827;
+        box-shadow: var(--shadow-soft);
+        display: flex;
+        flex-direction: row;
+        overflow: hidden;
+        gap: 0;
+      }
+
+      .client-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        border-right: 1px solid var(--border);
+      }
+
+      .client-panel:last-child {
+        border-right: none;
+      }
+
+      @media (max-width: 900px) {
+        .app-shell {
+          flex-direction: column;
+        }
+        .client-panel {
+          border-right: none;
+          border-bottom: 1px solid var(--border);
+        }
+        .client-panel:last-child {
+          border-bottom: none;
+        }
+      }
+
+      .panel-inner {
+        padding: 18px 16px 14px 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: 100%;
+      }
+
+      /* Header */
+      .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .header-left {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .logo-pill {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(
+          circle at 30% 20%,
+          #22c55e,
+          #16a34a 35%,
+          #14532d 100%
+        );
+        box-shadow: 0 0 20px rgba(34, 197, 94, 0.7);
+        font-size: 17px;
+      }
+
+      .app-title {
+        font-size: 0.95rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        color: #f9fafb;
+      }
+
+      .app-subtitle {
+        font-size: 0.7rem;
+        color: var(--text-muted);
+      }
+
+      .header-right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+      }
+
+      .user-tag {
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        font-size: 0.72rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(15, 23, 42, 0.9);
+      }
+
+      .user-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+      }
+
+      .user-dot.a {
+        background: #38bdf8;
+        box-shadow: 0 0 10px rgba(56, 189, 248, 0.8);
+      }
+
+      .user-dot.b {
+        background: #f97316;
+        box-shadow: 0 0 10px rgba(249, 115, 22, 0.8);
+      }
+
+      .conn-pill {
+        padding: 4px 9px;
+        border-radius: 999px;
+        border: 1px solid rgba(34, 197, 94, 0.6);
+        font-size: 0.68rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: rgba(15, 23, 42, 0.95);
+        color: #bbf7d0;
+      }
+
+      .conn-dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #22c55e;
+      }
+
+      .section-title-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 2px;
+      }
+
+      .section-title {
+        font-size: 0.78rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        color: #9ca3af;
+      }
+
+      .hint {
+        font-size: 0.68rem;
+        color: #6b7280;
+      }
+
+      /* Quick cards */
+      .card-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 4px;
+      }
+
+      @media (max-width: 700px) {
+        .card-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+      }
+
+      .msg-card {
+        position: relative;
+        border-radius: 16px;
+        border: 1px solid rgba(31, 41, 55, 0.95);
+        background: radial-gradient(
+          circle at top left,
+          rgba(15, 23, 42, 0.95),
+          #020617
+        );
+        padding: 8px 9px 9px 9px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        cursor: pointer;
+        transition: transform 0.06s ease, box-shadow 0.06s ease,
+          border-color 0.1s ease;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
+      }
+
+      .msg-card:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 14px 24px rgba(0, 0, 0, 0.7);
+        border-color: rgba(148, 163, 184, 0.8);
+      }
+
+      .msg-card:active {
+        transform: translateY(1px) scale(0.99);
+      }
+
+      .msg-card[data-urgent="true"] {
+        border-color: rgba(248, 113, 113, 0.9);
+        background: radial-gradient(
+          circle at top left,
+          rgba(127, 29, 29, 0.9),
+          #020617
+        );
+      }
+
+      .msg-card-top-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .msg-emoji {
+        font-size: 1.3rem;
+        filter: drop-shadow(0 0 10px rgba(148, 163, 184, 0.6));
+      }
+
+      .msg-label {
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .msg-sub {
+        font-size: 0.68rem;
+        color: #9ca3af;
+      }
+
+      .msg-tag {
+        font-size: 0.6rem;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        padding: 2px 7px;
+        align-self: flex-start;
+        margin-top: 3px;
+        color: #e5e7eb;
+      }
+
+      .msg-card[data-urgent="true"] .msg-tag {
+        border-color: rgba(248, 113, 113, 0.9);
+        color: #fecaca;
+      }
+
+      /* Emoji row */
+      .emoji-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 4px;
+      }
+
+      .emoji-chip {
+        border-radius: 999px;
+        padding: 5px 8px;
+        font-size: 1rem;
+        background: rgba(15, 23, 42, 0.96);
+        border: 1px solid rgba(55, 65, 81, 0.95);
+        cursor: pointer;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+        transition: transform 0.06s ease, box-shadow 0.06s ease,
+          border-color 0.1s ease;
+      }
+
+      .emoji-chip:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 22px rgba(0, 0, 0, 0.8);
+        border-color: rgba(148, 163, 184, 0.8);
+      }
+
+      .emoji-chip span {
+        filter: drop-shadow(0 0 8px rgba(148, 163, 184, 0.7));
+      }
+
+      /* Custom input */
+      .custom-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+
+      .custom-input {
+        flex: 1;
+        border-radius: 999px;
+        border: 1px solid rgba(55, 65, 81, 0.95);
+        padding: 7px 11px;
+        background: rgba(15, 23, 42, 0.95);
+        color: #e5e7eb;
+        font-size: 0.78rem;
+        outline: none;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .custom-input::placeholder {
+        color: #6b7280;
+      }
+
+      .custom-input:focus {
+        border-color: rgba(34, 197, 94, 0.9);
+        box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.5);
+      }
+
+      .send-btn {
+        border-radius: 999px;
+        padding: 7px 13px;
+        font-size: 0.76rem;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: radial-gradient(
+          circle at top,
+          #22c55e,
+          #16a34a 60%,
+          #166534 100%
+        );
+        color: #022c22;
+        font-weight: 600;
+        box-shadow: 0 10px 24px rgba(34, 197, 94, 0.6);
+        transition: transform 0.06s ease, box-shadow 0.06s ease;
+      }
+
+      .send-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(34, 197, 94, 0.8);
+      }
+
+      .send-btn:active {
+        transform: translateY(1px) scale(0.98);
+      }
+
+      .clear-btn {
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 0.7rem;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        color: #e5e7eb;
+        cursor: pointer;
+        display: inline-flex;
+        gap: 4px;
+        align-items: center;
+      }
+
+      .clear-btn:hover {
+        border-color: rgba(248, 113, 113, 0.9);
+        color: #fecaca;
+      }
+
+      /* Conversation */
+      .conversation {
+        flex: 1;
+        margin-top: 4px;
+        border-radius: 16px;
+        border: 1px solid rgba(31, 41, 55, 0.95);
+        background: radial-gradient(
+          circle at top,
+          rgba(15, 23, 42, 0.95),
+          #020617
+        );
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-height: 200px;
+      }
+
+      .conversation-body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 6px;
+        border-radius: 10px;
+        background: rgba(15, 23, 42, 0.9);
+        scrollbar-width: thin;
+        scrollbar-color: #4b5563 #020617;
+      }
+
+      .conversation-body::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .conversation-body::-webkit-scrollbar-thumb {
+        background: #4b5563;
+        border-radius: 999px;
+      }
+
+      .no-msgs {
+        font-size: 0.78rem;
+        color: #6b7280;
+        text-align: center;
+        margin-top: 20px;
+      }
+
+      .msg-bubble {
+        max-width: 80%;
+        margin: 4px 0;
+        padding: 6px 9px;
+        border-radius: 16px;
+        font-size: 0.78rem;
+        display: inline-flex;
+        flex-direction: column;
+        gap: 2px;
+        background: rgba(15, 23, 42, 0.96);
+        border: 1px solid rgba(55, 65, 81, 0.95);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.75);
+      }
+
+      .msg-bubble.me {
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+        background: radial-gradient(
+          circle at top right,
+          rgba(34, 197, 94, 0.6),
+          #022c22
+        );
+        border-color: rgba(34, 197, 94, 0.95);
+      }
+
+      .msg-bubble.them {
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+      }
+
+      .msg-bubble.urgent {
+        border-color: rgba(248, 113, 113, 0.95);
+        background: radial-gradient(
+          circle at top left,
+          rgba(127, 29, 29, 0.95),
+          #020617
+        );
+      }
+
+      .msg-text {
+        color: #e5e7eb;
+      }
+
+      .msg-meta {
+        font-size: 0.62rem;
+        display: flex;
+        justify-content: space-between;
+        color: #9ca3af;
+      }
+
+      .msg-meta span.role {
+        text-transform: uppercase;
+        letter-spacing: 0.12em;
+        font-weight: 500;
+      }
+
+      .msg-meta span.time {
+        opacity: 0.8;
+      }
+
+      .legend-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 3px;
+        font-size: 0.68rem;
+        color: #6b7280;
+      }
+
+      .legend-dots {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .legend-item {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      .legend-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent-soft);
+        border: 1px solid rgba(34, 197, 94, 0.8);
+      }
+
+      .legend-dot.urgent {
+        background: rgba(239, 68, 68, 0.2);
+        border-color: rgba(239, 68, 68, 0.9);
+      }
+
+      /* Snackbar */
+      .snackbar {
+        position: fixed;
+        left: 50%;
+        bottom: 16px;
+        transform: translateX(-50%) translateY(120%);
+        background: rgba(15, 23, 42, 0.98);
+        border-radius: 999px;
+        border: 1px solid rgba(34, 197, 94, 0.8);
+        color: #bbf7d0;
+        padding: 6px 14px;
+        font-size: 0.76rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 16px 36px rgba(0, 0, 0, 0.9);
+        opacity: 0;
+        transition: opacity 0.16s ease, transform 0.16s ease;
+        z-index: 100;
+      }
+
+      .snackbar-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #22c55e;
+      }
+
+      .snackbar.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0%);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-shell">
+      <!-- CLIENT A -->
+      <div class="client-panel" id="clientA">
+        <div class="panel-inner">
+          <header class="header-row">
+            <div class="header-left">
+              <div class="logo-pill">🤫</div>
+              <div>
+                <div class="app-title">Quiet Please</div>
+                <div class="app-subtitle">Device A</div>
+              </div>
+            </div>
+            <div class="header-right">
+              <div class="user-tag">
+                <span class="user-dot a"></span>
+                <span>You (A)</span>
+              </div>
+              <div class="conn-pill" id="connA">
+                <span class="conn-dot"></span>
+                <span>Connecting...</span>
+              </div>
+            </div>
+          </header>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Quick Cards</div>
+              <div class="hint">Tap to send to B</div>
+            </div>
+            <div class="card-grid" data-client="A"></div>
+          </section>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Emotional Ping</div>
+              <div class="hint">Tap an emoji</div>
+            </div>
+            <div class="emoji-row" data-client="A"></div>
+          </section>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Custom Whisper</div>
+            </div>
+            <div class="custom-row">
+              <input
+                type="text"
+                class="custom-input"
+                placeholder="Type a silent message to Device B…"
+                data-client="A"
+              />
+              <button class="send-btn" data-client="A" type="button">
+                <span>📨</span><span>Send</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="conversation">
+            <div class="section-title-row">
+              <div class="section-title">Silent Stream</div>
+              <button class="clear-btn" data-client="A" type="button">
+                <span>🧹</span><span>Clear</span>
+              </button>
+            </div>
+            <div class="conversation-body" data-client="A">
+              <div class="no-msgs">No messages yet. Send something to B.</div>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dots">
+                <div class="legend-item">
+                  <span class="legend-dot"></span><span>Normal</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot urgent"></span><span>Urgent</span>
+                </div>
+              </div>
+              <div>Blue = You, Orange = B</div>
+            </div>
+          </section>
+        </div>
+      </div>
+
+      <!-- CLIENT B -->
+      <div class="client-panel" id="clientB">
+        <div class="panel-inner">
+          <header class="header-row">
+            <div class="header-left">
+              <div class="logo-pill">🤫</div>
+              <div>
+                <div class="app-title">Quiet Please</div>
+                <div class="app-subtitle">Device B</div>
+              </div>
+            </div>
+            <div class="header-right">
+              <div class="user-tag">
+                <span class="user-dot b"></span>
+                <span>You (B)</span>
+              </div>
+              <div class="conn-pill" id="connB">
+                <span class="conn-dot"></span>
+                <span>Connecting...</span>
+              </div>
+            </div>
+          </header>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Quick Cards</div>
+              <div class="hint">Tap to send to A</div>
+            </div>
+            <div class="card-grid" data-client="B"></div>
+          </section>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Emotional Ping</div>
+              <div class="hint">Tap an emoji</div>
+            </div>
+            <div class="emoji-row" data-client="B"></div>
+          </section>
+
+          <section>
+            <div class="section-title-row">
+              <div class="section-title">Custom Whisper</div>
+            </div>
+            <div class="custom-row">
+              <input
+                type="text"
+                class="custom-input"
+                placeholder="Type a silent message to Device A…"
+                data-client="B"
+              />
+              <button class="send-btn" data-client="B" type="button">
+                <span>📨</span><span>Send</span>
+              </button>
+            </div>
+          </section>
+
+          <section class="conversation">
+            <div class="section-title-row">
+              <div class="section-title">Silent Stream</div>
+              <button class="clear-btn" data-client="B" type="button">
+                <span>🧹</span><span>Clear</span>
+              </button>
+            </div>
+            <div class="conversation-body" data-client="B">
+              <div class="no-msgs">No messages yet. Send something to A.</div>
+            </div>
+            <div class="legend-row">
+              <div class="legend-dots">
+                <div class="legend-item">
+                  <span class="legend-dot"></span><span>Normal</span>
+                </div>
+                <div class="legend-item">
+                  <span class="legend-dot urgent"></span><span>Urgent</span>
+                </div>
+              </div>
+              <div>Orange = You, Blue = A</div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </div>
+
+    <!-- Snackbar -->
+    <div class="snackbar" id="snackbar">
+      <span class="snackbar-dot"></span>
+      <span id="snackbarText">Message sent silently</span>
+    </div>
+
+    <script>
+      // --- CONFIG ---
+      const CARD_PRESETS = [
+        {
+          id: "help",
+          emoji: "🖐️",
+          label: "I need help",
+          sub: "Come when you can",
+          tag: "REQUEST",
+          urgent: false,
+        },
+        {
+          id: "done",
+          emoji: "✅",
+          label: "I'm done",
+          sub: "Ready to move on",
+          tag: "STATUS",
+          urgent: false,
+        },
+        {
+          id: "break",
+          emoji: "☕",
+          label: "Break?",
+          sub: "Quick pause?",
+          tag: "SOCIAL",
+          urgent: false,
+        },
+        {
+          id: "later",
+          emoji: "👋",
+          label: "Talk later",
+          sub: "Not now, later",
+          tag: "BOUNDARY",
+          urgent: false,
+        },
+        {
+          id: "quiet",
+          emoji: "🤫",
+          label: "Too loud",
+          sub: "Please lower noise",
+          tag: "ENVIRONMENT",
+          urgent: false,
+        },
+        {
+          id: "urgent",
+          emoji: "⚠️",
+          label: "Urgent",
+          sub: "Need you now",
+          tag: "ALERT",
+          urgent: true,
+        },
+      ];
+
+      const EMOJI_PRESETS = [
+        { emoji: "😀", label: "Happy" },
+        { emoji: "😌", label: "Calm" },
+        { emoji: "😰", label: "Stressed" },
+        { emoji: "🤯", label: "Overwhelmed" },
+        { emoji: "😴", label: "Tired" },
+        { emoji: "🎉", label: "Excited" },
+      ];
+
+      // --- HELPERS ---
+      function getTime() {
+        const now = new Date();
+        const h = now.getHours().toString().padStart(2, "0");
+        const m = now.getMinutes().toString().padStart(2, "0");
+        return `${h}:${m}`;
+      }
+
+      function randomId(prefix) {
+        return prefix + "_" + Math.random().toString(36).slice(2, 9);
+      }
+
+      // --- RENDER UI ---
+      function renderCardsForClient(clientId) {
+        const grid = document.querySelector(
+          `.card-grid[data-client="${clientId}"]`
+        );
+        grid.innerHTML = "";
+        CARD_PRESETS.forEach((card) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "msg-card";
+          btn.dataset.urgent = card.urgent ? "true" : "false";
+          btn.dataset.client = clientId;
+          btn.dataset.label = card.label;
+          btn.dataset.emoji = card.emoji;
+          btn.dataset.tag = card.tag;
+
+          btn.innerHTML = `
+          <div class="msg-card-top-row">
+            <div class="msg-emoji">${card.emoji}</div>
+            <div class="msg-label">${card.label}</div>
+          </div>
+          <div class="msg-sub">${card.sub}</div>
+          <div class="msg-tag">${card.tag}</div>
+        `;
+
+          btn.addEventListener("click", () => {
+            sendMessageFromUI(clientId, {
+              type: "card",
+              text: card.label,
+              emoji: card.emoji,
+              urgent: card.urgent,
+              tag: card.tag,
+            });
+          });
+
+          grid.appendChild(btn);
+        });
+      }
+
+      function renderEmojisForClient(clientId) {
+        const row = document.querySelector(
+          `.emoji-row[data-client="${clientId}"]`
+        );
+        row.innerHTML = "";
+        EMOJI_PRESETS.forEach((item) => {
+          const btn = document.createElement("button");
+          btn.type = "button";
+          btn.className = "emoji-chip";
+          btn.dataset.client = clientId;
+          btn.innerHTML = `<span>${item.emoji}</span>`;
+          btn.addEventListener("click", () => {
+            sendMessageFromUI(clientId, {
+              type: "emoji",
+              text: item.label,
+              emoji: item.emoji,
+              urgent: false,
+              tag: "EMOJI",
+            });
+          });
+          row.appendChild(btn);
+        });
+      }
+
+      function appendMessageBubble(clientId, data) {
+        const body = document.querySelector(
+          `.conversation-body[data-client="${clientId}"]`
+        );
+        if (!body) return;
+
+        // Remove placeholder
+        const placeholder = body.querySelector(".no-msgs");
+        if (placeholder) placeholder.remove();
+
+        const bubble = document.createElement("div");
+        const isMe = data.senderId === clientId;
+        bubble.className = "msg-bubble " + (isMe ? "me" : "them");
+        if (data.urgent) bubble.classList.add("urgent");
+
+        const textEl = document.createElement("div");
+        textEl.className = "msg-text";
+
+        if (data.type === "emoji") {
+          textEl.textContent = `${data.emoji} ${data.text}`;
+        } else {
+          textEl.textContent = data.emoji
+            ? `${data.emoji} ${data.text}`
+            : data.text;
+        }
+
+        const meta = document.createElement("div");
+        meta.className = "msg-meta";
+        meta.innerHTML = `
+        <span class="role">${isMe ? "YOU" : data.otherLabel || "THEM"}</span>
+        <span class="time">${data.time || getTime()}</span>
+      `;
+
+        bubble.appendChild(textEl);
+        bubble.appendChild(meta);
+
+        body.appendChild(bubble);
+        body.scrollTop = body.scrollHeight;
+      }
+
+      function clearConversation(clientId) {
+        const body = document.querySelector(
+          `.conversation-body[data-client="${clientId}"]`
+        );
+        if (!body) return;
+        body.innerHTML = `<div class="no-msgs">No messages yet. Send something.</div>`;
+      }
+
+      // --- SNACKBAR ---
+      const snackbarEl = document.getElementById("snackbar");
+      const snackbarTextEl = document.getElementById("snackbarText");
+      let snackbarTimeout = null;
+
+      function showSnackbar(text) {
+        snackbarTextEl.textContent = text;
+        snackbarEl.classList.add("visible");
+        if (snackbarTimeout) clearTimeout(snackbarTimeout);
+        snackbarTimeout = setTimeout(() => {
+          snackbarEl.classList.remove("visible");
+        }, 1600);
+      }
+
+      // --- WEBSOCKET SETUP ---
+      const WS_URL = "ws://localhost:8080";
+      const clientIdA = "A";
+      const clientIdB = "B";
+
+      let socketA = null;
+      let socketB = null;
+
+      function setConnStatus(clientId, status, text) {
+        const el = document.getElementById(
+          clientId === "A" ? "connA" : "connB"
+        );
+        if (!el) return;
+        const spanText = el.querySelector("span:last-child");
+        if (spanText) spanText.textContent = text;
+        const dot = el.querySelector(".conn-dot");
+        if (!dot) return;
+        if (status === "connected") {
+          dot.style.background = "#22c55e";
+        } else if (status === "connecting") {
+          dot.style.background = "#eab308";
+        } else {
+          dot.style.background = "#ef4444";
+        }
+      }
+
+      function createSocketForClient(clientId) {
+        const socket = new WebSocket(WS_URL);
+        setConnStatus(clientId, "connecting", "Connecting...");
+
+        socket.addEventListener("open", () => {
+          setConnStatus(clientId, "connected", "Connected");
+        });
+
+        socket.addEventListener("close", () => {
+          setConnStatus(clientId, "closed", "Disconnected");
+        });
+
+        socket.addEventListener("error", () => {
+          setConnStatus(clientId, "error", "Error");
+        });
+
+        socket.addEventListener("message", (event) => {
+          try {
+            const msg = JSON.parse(event.data);
+            // Append to both A and B panels
+            appendMessageBubble(clientIdA, msg);
+            appendMessageBubble(clientIdB, msg);
+          } catch (e) {
+            console.error("Invalid message", e);
+          }
+        });
+
+        return socket;
+      }
+
+      function sendMessageFromUI(clientId, payload) {
+        const data = {
+          ...payload,
+          senderId: clientId,
+          otherLabel: clientId === "A" ? "B" : "A",
+          time: getTime(),
+        };
+
+        const socket = clientId === "A" ? socketA : socketB;
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+          showSnackbar("Not connected to server");
+          return;
+        }
+
+        socket.send(JSON.stringify(data));
+        showSnackbar("Silent message sent");
+      }
+
+      // --- INIT UI + SOCKETS ---
+      function initClient(clientId) {
+        renderCardsForClient(clientId);
+        renderEmojisForClient(clientId);
+
+        const input = document.querySelector(
+          `.custom-input[data-client="${clientId}"]`
+        );
+        const sendBtn = document.querySelector(
+          `.send-btn[data-client="${clientId}"]`
+        );
+        const clearBtn = document.querySelector(
+          `.clear-btn[data-client="${clientId}"]`
+        );
+
+        if (sendBtn && input) {
+          sendBtn.addEventListener("click", () => {
+            const value = input.value.trim();
+            if (!value) return;
+            sendMessageFromUI(clientId, {
+              type: "custom",
+              text: value,
+              emoji: "💬",
+              urgent: false,
+              tag: "CUSTOM",
+            });
+            input.value = "";
+            input.focus();
+          });
+
+          input.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") {
+              e.preventDefault();
+              sendBtn.click();
+            }
+          });
+        }
+
+        if (clearBtn) {
+          clearBtn.addEventListener("click", () => {
+            clearConversation(clientId);
+          });
+        }
+      }
+
+      // Initialize both panels + their sockets
+      initClient("A");
+      initClient("B");
+
+      socketA = createSocketForClient("A");
+      socketB = createSocketForClient("B");
+    </script>
+  </body>
+</html>
