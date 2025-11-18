@@ -947,7 +947,7 @@
       }
 
       // --- WEBSOCKET SETUP ---
-      onst WS_URL = "ws://quietplease.onrender.com";
+      const WS_URL = "wss://quietplease.onrender.com";
       const clientIdA = "A";
       const clientIdB = "B";
 
@@ -1020,6 +1020,33 @@
         showSnackbar("Silent message sent");
       }
 
+      function connectWS(clientId) {
+  const socket = new WebSocket(WS_URL);
+
+  socket.onopen = () => {
+    setConnStatus(clientId, "connected", "Connected");
+  };
+
+  socket.onclose = () => {
+    setConnStatus(clientId, "closed", "Reconnecting...");
+    setTimeout(() => connectWS(clientId), 2000);
+  };
+
+  socket.onerror = () => {
+    setConnStatus(clientId, "error", "Error");
+  };
+
+  socket.onmessage = (event) => {
+    const msg = JSON.parse(event.data);
+    appendMessageBubble("A", msg);
+    appendMessageBubble("B", msg);
+  };
+
+  return socket;
+}
+
+socketA = connectWS("A");
+socketB = connectWS("B");
       // --- INIT UI + SOCKETS ---
       function initClient(clientId) {
         renderCardsForClient(clientId);
