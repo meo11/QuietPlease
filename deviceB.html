@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiet Please – Device B</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    :root {
+      --accent: #fb923c;              /* Orange for Device B */
+      --accent-glow: rgba(251,146,60,0.4);
+      --accent-soft: rgba(251,146,60,0.12);
+      --urgent: #ef4444;
+      --text: #e5e7eb;
+      --bg: #0f172a;
+      --bg2: #020617;
+    }
+
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #1e293b 0%, #020617 40%);
+      font-family: system-ui, sans-serif;
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 16px;
+    }
+
+    .box {
+      width: 100%;
+      max-width: 650px;
+      background: linear-gradient(145deg, #020617, #0b1120);
+      border-radius: 24px;
+      border: 1px solid #1e293b;
+      padding: 20px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      border: 1px solid var(--accent);
+      background: rgba(15,23,42,0.8);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent-glow);
+    }
+
+    .stream {
+      background: rgba(15,23,42,0.8);
+      border: 1px solid #1e293b;
+      padding: 10px;
+      border-radius: 16px;
+      min-height: 250px;
+      max-height: 300px;
+      overflow-y: auto;
+    }
+
+    .msg {
+      margin: 8px 0;
+      padding: 8px 12px;
+      border-radius: 14px;
+      background: rgba(30,41,59,0.8);
+      border-right: 3px solid var(--accent);
+    }
+
+    .msg.them {
+      border-right: 3px solid var(--urgent);
+    }
+
+    .emoji-row button,
+    .quick-grid button,
+    .send-btn {
+      cursor: pointer;
+      border: none;
+      border-radius: 12px;
+      background: rgba(15,23,42,0.9);
+      color: var(--text);
+      padding: 10px 14px;
+      margin: 4px;
+      font-size: 1rem;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
+      transition: 0.15s;
+    }
+
+    .emoji-row button:hover,
+    .quick-grid button:hover,
+    .send-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+    }
+
+    input {
+      width: 100%;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid #1e293b;
+      background: rgba(15,23,42,0.95);
+      color: var(--text);
+      outline: none;
+      margin-top: 6px;
+    }
+
+  </style>
+</head>
+
+<body>
+  <div class="box">
+    <header>
+      <h2>Quiet Please – Device B</h2>
+      <div id="status" class="pill"><span class="dot"></span> Connecting...</div>
+    </header>
+
+    <h3>Quick Cards</h3>
+    <div class="quick-grid">
+      <button onclick="sendCard('🖐️','I need help')">🖐️ I need help</button>
+      <button onclick="sendCard('✅','I\\'m done')">✅ I'm done</button>
+      <button onclick="sendCard('☕','Break?')">☕ Break?</button>
+      <button onclick="sendCard('👋','Talk later')">👋 Talk later</button>
+      <button onclick="sendCard('🤫','Too loud')">🤫 Too loud</button>
+      <button onclick="sendCard('⚠️','Urgent', true)">⚠️ Urgent</button>
+    </div>
+
+    <h3>Emotional Ping</h3>
+    <div class="emoji-row">
+      <button onclick="sendEmoji('😀')">😀</button>
+      <button onclick="sendEmoji('😌')">😌</button>
+      <button onclick="sendEmoji('😰')">😰</button>
+      <button onclick="sendEmoji('🤯')">🤯</button>
+      <button onclick="sendEmoji('😴')">😴</button>
+      <button onclick="sendEmoji('🎉')">🎉</button>
+    </div>
+
+    <h3>Custom Whisper</h3>
+    <input id="customInput" placeholder="Type a silent message..." />
+    <button class="send-btn" onclick="sendCustom()">Send</button>
+
+    <h3>Silent Stream</h3>
+    <div class="stream" id="stream"></div>
+  </div>
+
+  <script>
+    const WS_URL = "wss://quietplease.onrender.com";
+    const socket = new WebSocket(WS_URL);
+
+    const statusEl = document.getElementById("status");
+    const streamEl = document.getElementById("stream");
+
+    socket.onopen = () => {
+      statusEl.innerHTML = '<span class="dot"></span> Connected';
+    };
+
+    socket.onclose = () => {
+      statusEl.innerHTML = '<span class="dot" style="background:#ef4444"></span> Disconnected';
+    };
+
+    socket.onmessage = (event) => {
+      const msg = JSON.parse(event.data);
+      renderMessage(msg);
+    };
+
+    function send(type, emoji, text, urgent=false) {
+      const payload = {
+        sender: "B",
+        type,
+        emoji,
+        text,
+        urgent,
+        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      };
+      socket.send(JSON.stringify(payload));
+    }
+
+    function sendCard(emoji, text, urgent=false) {
+      send("card", emoji, text, urgent);
+    }
+
+    function sendEmoji(emoji) {
+      send("emoji", emoji, emoji);
+    }
+
+    function sendCustom() {
+      const val = document.getElementById("customInput").value.trim();
+      if (!val) return;
+      send("custom", "💬", val);
+      document.getElementById("customInput").value = "";
+    }
+
+    function renderMessage(msg) {
+      const div = document.createElement("div");
+      div.className = "msg " + (msg.sender === "B" ? "" : "them");
+      div.innerHTML = `${msg.emoji} ${msg.text} <br><small>${msg.sender} • ${msg.time}</small>`;
+      streamEl.appendChild(div);
+      streamEl.scrollTop = streamEl.scrollHeight;
+    }
+  </script>
+</body>
+</html>
