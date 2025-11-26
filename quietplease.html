@@ -23,11 +23,29 @@
   --radius-md: 12px;
   --shadow-soft: 0 18px 35px rgba(0, 0, 0, 0.6);
 }
-
-/* QUICK CARD TEXT FIX (white text) */
-.quick-card, .quick-card * {
-  color: var(--text) !important;
+/* QUICK CARD TEXT — FIXED TO WHITE */
+.quick-card .msg-label,
+.quick-card .msg-sub,
+.quick-card .msg-tag {
+    color: var(--text) !important;
 }
+
+/* Optional: Make main label slightly brighter */
+.quick-card .msg-label {
+    font-weight: 600;
+}
+
+/* Optional: Make subtitle softer */
+.quick-card .msg-sub {
+    opacity: 0.75;
+}
+
+/* Optional: Urgent tag stays bright red */
+.quick-card[data-urgent="true"] .msg-tag {
+    border-color: rgba(248, 113, 113, 0.9);
+    color: #fecaca !important;
+}
+/* QUICK CARD TEXT FIX (white tex
 
 /* ---- Reset ---- */
 * { box-sizing: border-box; }
