@@ -1,86 +1,70 @@
-// server.js - Quiet Please backend with profiles + presence
 import express from "express";
-import http from "http";
-import { WebSocketServer } from "ws";
 import path from "path";
+import { WebSocketServer } from "ws";
 import { fileURLToPath } from "url";
 
+// Needed for __dirname in ES modules
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const PORT = process.env.PORT || 10000;
+const PORT = process.env.PORT || 3000;
+
 const app = express();
 
-// Serve static files (deviceA.html, deviceB.html, etc.)
-app.use(express.static(__dirname));
+// --- SERVE STATIC FILES (HTML, CSS, JS) ---
+app.use(express.static(__dirname)); // serves your whole folder
 
-const server = http.createServer(app);
+// Root route → load index.html
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "index.html"));
+});
+
+// Start HTTP server
+const server = app.listen(PORT, () =>
+  console.log(`HTTP server live on port ${PORT}`)
+);
+
+// --- WEBSOCKET SERVER ---
 const wss = new WebSocketServer({ server });
 
-// Keep track of connected clients & their profiles
-// Map<WebSocket, { id, name, avatar, color }>
-const clients = new Map();
-
-function broadcast(jsonObj) {
-  const data = JSON.stringify(jsonObj);
-  for (const client of wss.clients) {
-    if (client.readyState === 1) {
-      client.send(data);
-    }
-  }
-}
+let users = {};
 
 function broadcastPresence() {
-  const users = [];
-  for (const [, profile] of clients) {
-    if (profile && profile.id) {
-      users.push(profile);
-    }
-  }
-  broadcast({
+  const payload = JSON.stringify({
     type: "presence",
-    users,
+    users: Object.values(users),
   });
+  for (const client of wss.clients) {
+    if (client.readyState === 1) client.send(payload);
+  }
 }
 
 wss.on("connection", (ws) => {
-  // Initialize with an empty profile
-  clients.set(ws, { id: null, name: null, avatar: null, color: null });
+  let userId = null;
 
   ws.on("message", (raw) => {
     try {
-      const msg = JSON.parse(raw.toString());
+      const msg = JSON.parse(raw);
 
       if (msg.type === "profile") {
-        // Update stored profile for this client
-        clients.set(ws, {
-          id: msg.id,
-          name: msg.name,
-          avatar: msg.avatar,
-          color: msg.color,
-        });
-        // Notify everyone of the new presence list
+        userId = msg.id;
+        users[userId] = msg;
         broadcastPresence();
-      } else if (msg.type === "chat") {
-        // Attach server timestamp (optional)
-        const serverMsg = {
-          ...msg,
-          serverTime: new Date().toISOString(),
-        };
-        // Broadcast chat message as-is to all
-        broadcast(serverMsg);
       }
-    } catch (err) {
-      console.error("Bad message:", err);
-    }
+
+      if (msg.type === "chat") {
+        const payload = JSON.stringify(msg);
+        for (const client of wss.clients) {
+          if (client.readyState === 1) client.send(payload);
+        }
+      }
+    } catch {}
   });
 
   ws.on("close", () => {
-    clients.delete(ws);
-    broadcastPresence();
+    if (userId && users[userId]) {
+      delete users[userId];
+      broadcastPresence();
+    }
   });
-});
-
-server.listen(PORT, () => {
-  console.log(`QuietPlease WebSocket server running on port ${PORT}`);
 });
