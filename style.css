@@ -1,29 +1,37 @@
-/* ========== THEME VARIABLES ========== */
+/* ============================================================
+   QUIET PLEASE – GLOBAL STYLES
+   Applies to both index.html & client.html
+   ============================================================ */
+
 :root {
-  --accentA: #38bdf8;       /* Blue for Device A */
-  --accentB: #fb923c;       /* Orange for Device B */
-  --urgent: #ef4444;
+  --bg: #020617;
+  --bg2: #0f172a;
   --text: #e5e7eb;
   --text-muted: #9ca3af;
   --border: #1f2937;
-  --bg: #020617;
-  --bg2: #0f172a;
+  --urgent: #ef4444;
 }
 
-/* ========== GLOBAL STYLES ========== */
+/* RESET ------------------------------------------------------- */
+
+* {
+  box-sizing: border-box;
+}
+
 body {
   margin: 0;
-  background: radial-gradient(circle at top, #1e293b 0%, #020617 40%);
-  font-family: system-ui, sans-serif;
+  background: radial-gradient(circle at top, #1e293b 0%, #020617 45%);
   color: var(--text);
-  display: flex;
-  justify-content: center;
-  padding: 16px;
+  font-family: system-ui, -apple-system, sans-serif;
 }
+
+/* ============================================================
+   SHARED UI SHELL
+   ============================================================ */
 
 .shell {
   width: 100%;
-  max-width: 720px;
+  max-width: 740px;
   background: linear-gradient(145deg, #020617, #0b1120);
   border-radius: 24px;
   border: 1px solid #111827;
@@ -31,31 +39,33 @@ body {
   padding: 18px 18px 16px;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
 }
 
-/* HEADER */
+/* HEADER ------------------------------------------------------ */
+
 header {
   display: flex;
   justify-content: space-between;
-  gap: 10px;
   align-items: center;
 }
 
 .logo-title {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   align-items: center;
 }
 
 .logo-pill {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 999px;
+  background: radial-gradient(circle at 30% 20%, #38bdf8, #0284c7 40%, #0369a1 100%);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 20px;
 }
 
 .titles h2 {
@@ -64,120 +74,285 @@ header {
 }
 
 .titles span {
+  margin: 0;
   font-size: 0.75rem;
   color: var(--text-muted);
 }
+
+/* STATUS PILL ------------------------------------------------ */
+
+.pill {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(148,163,184,0.4);
+  background: rgba(15,23,42,0.95);
+  font-size: 0.75rem;
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.pill .dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #38bdf8;
+  box-shadow: 0 0 10px rgba(56,189,248,0.6);
+}
+
+.pill.offline .dot {
+  background: #ef4444;
+  box-shadow: 0 0 10px rgba(239,68,68,0.6);
+}
+
+/* SECTION LABELS -------------------------------------------- */
 
 .section-label {
   font-size: 0.78rem;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
   color: var(--text-muted);
-  margin-top: 2px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
 }
 
 .hint {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   color: #6b7280;
 }
 
-/* QUICK CARDS */
+.row-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+/* PROFILE EDIT ------------------------------------------------ */
+
+.profile-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.profile-edit-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-input {
+  flex: 1;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: var(--text);
+  outline: none;
+}
+
+.profile-input:focus {
+  border-color: #38bdf8;
+  box-shadow: 0 0 0 1px rgba(56,189,248,0.35);
+}
+
+.profile-avatar-input {
+  max-width: 60px;
+}
+
+.profile-save-btn {
+  background: rgba(56,189,248,0.25);
+  color: #38bdf8;
+  border-radius: 999px;
+  padding: 6px 10px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.75rem;
+}
+
+.profile-save-btn:hover {
+  background: rgba(56,189,248,0.4);
+}
+
+/* PRESENCE LIST ------------------------------------------------ */
+
+.presence {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  padding: 8px;
+  max-height: 90px;
+  overflow-y: auto;
+}
+
+.presence-item {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 6px;
+  background: rgba(30,41,59,0.6);
+  border-radius: 10px;
+  margin-bottom: 4px;
+}
+
+.presence-avatar {
+  font-size: 1rem;
+}
+
+.presence-name {
+  font-weight: 500;
+}
+
+.presence-id {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+}
+
+/* QUICK CARDS -------------------------------------------------- */
+
 .quick-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 8px;
-  margin-top: 4px;
 }
 
 .quick-card {
+  background: rgba(15, 23, 42, 0.95);
   border-radius: 14px;
   border: 1px solid var(--border);
-  background: rgba(15, 23, 42, 0.95);
-  padding: 8px 9px;
+  padding: 10px;
   cursor: pointer;
+  font-size: 0.75rem;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.75rem;
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
-  transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.1s ease;
+  transition: 0.15s;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.6);
 }
 
-/* FIX: make the card text WHITE */
+/* FIX TEXT COLORS → always white */
 .quick-main {
   color: var(--text) !important;
+  font-weight: 500;
 }
 
 .quick-sub {
   color: var(--text) !important;
-  opacity: 0.85;
+  opacity: 0.8;
 }
 
+/* urgent card border */
 .quick-card[data-urgent="true"] {
   border-color: var(--urgent);
 }
 
-/* EMOJIS */
+.quick-card:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 10px 25px rgba(56,189,248,0.45);
+}
+
+.quick-title {
+  display: flex;
+  justify-content: space-between;
+}
+
+.quick-emoji {
+  font-size: 1.2rem;
+}
+
+/* EMOJI BUTTONS ------------------------------------------------ */
+
 .emoji-row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   flex-wrap: wrap;
-  margin-top: 4px;
 }
 
 .emoji-btn {
-  border-radius: 999px;
-  padding: 6px 9px;
+  background: rgba(15,23,42,0.96);
   border: 1px solid var(--border);
-  background: #0f172a;
-  font-size: 1rem;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 1.2rem;
   cursor: pointer;
+  transition: 0.15s;
 }
 
-/* CUSTOM INPUT */
+.emoji-btn:hover {
+  transform: translateY(-2px);
+  border-color: #38bdf8;
+  box-shadow: 0 10px 20px rgba(56,189,248,0.5);
+}
+
+/* CUSTOM MESSAGE ------------------------------------------------ */
+
 .custom-row {
   display: flex;
-  margin-top: 6px;
-  gap: 6px;
+  gap: 8px;
 }
 
 .custom-row input {
   flex: 1;
   border-radius: 999px;
-  background: #0f172a;
   border: 1px solid var(--border);
+  background: rgba(15,23,42,0.96);
   padding: 8px 12px;
   color: var(--text);
 }
 
-/* CONVERSATION */
+.send-btn {
+  background: linear-gradient(to bottom, #22c55e, #15803d);
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 600;
+  color: #022c22;
+  box-shadow: 0 10px 20px rgba(34,197,94,0.45);
+}
+
+/* CONVERSATION ------------------------------------------------- */
+
 .conversation {
-  border-radius: 16px;
+  background: rgba(15,23,42,0.96);
   border: 1px solid var(--border);
-  background: #0f172a;
+  border-radius: 16px;
   padding: 8px;
-  min-height: 220px;
-  max-height: 260px;
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  min-height: 230px;
+  max-height: 260px;
+}
+
+.conversation-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px;
 }
 
 .msg {
-  max-width: 82%;
-  padding: 6px 10px;
-  border-radius: 14px;
-  margin: 4px 0;
-  background: rgba(30, 41, 59, 0.9);
+  background: rgba(30,41,59,0.9);
   border: 1px solid #374151;
+  border-radius: 14px;
+  padding: 6px 10px;
+  margin: 6px 0;
+  font-size: 0.8rem;
+  max-width: 85%;
 }
 
 .msg.me {
   margin-left: auto;
-  border-left: 2px solid var(--accentA);
 }
 
 .msg.them {
   margin-right: auto;
   border-left: 2px solid var(--urgent);
+}
+
+.msg-meta {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+  display: flex;
+  justify-content: space-between;
 }
