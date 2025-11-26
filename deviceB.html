@@ -4,17 +4,18 @@
   <meta charset="UTF-8" />
   <title>Quiet Please – Device B</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <style>
-    :root {
-      --accent: #fb923c;              /* Orange for Device B */
-      --accent-glow: rgba(251,146,60,0.4);
-      --accent-soft: rgba(251,146,60,0.12);
-      --urgent: #ef4444;
-      --text: #e5e7eb;
-      --bg: #0f172a;
-      --bg2: #020617;
-    }
+  :root {
+    --accent: #fb923c; /* Orange */
+    --accent-soft: rgba(251, 146, 60, 0.12);
+    --accent-glow: rgba(251, 146, 60, 0.5);
+    --urgent: #ef4444;
+    --bg: #020617;
+    --bg2: #0f172a;
+    --text: #e5e7eb;
+    --text-muted: #9ca3af;
+    --border: #1f2937;
+}
 
     body {
       margin: 0;
@@ -26,189 +27,693 @@
       padding: 16px;
     }
 
-    .box {
+    .shell {
       width: 100%;
-      max-width: 650px;
+      max-width: 720px;
       background: linear-gradient(145deg, #020617, #0b1120);
       border-radius: 24px;
-      border: 1px solid #1e293b;
-      padding: 20px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+      border: 1px solid #111827;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
+      padding: 18px 18px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
     }
 
     header {
       display: flex;
       justify-content: space-between;
+      gap: 10px;
       align-items: center;
     }
 
-    .pill {
-      padding: 6px 12px;
-      border-radius: 999px;
-      font-size: 0.75rem;
-      border: 1px solid var(--accent);
-      background: rgba(15,23,42,0.8);
-      color: var(--accent);
+    .logo-title {
       display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .logo-pill {
+      width: 32px;
+      height: 32px;
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at 30% 20%, var(--accent), #0ea5e9 40%, #0369a1 100%);
+      box-shadow: 0 0 18px var(--accent-glow);
+      font-size: 18px;
+    }
+
+    .titles {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .titles h2 {
+      margin: 0;
+      font-size: 1rem;
+    }
+
+    .titles span {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .status-area {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .pill {
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      background: rgba(15, 23, 42, 0.95);
+      display: inline-flex;
       align-items: center;
       gap: 6px;
     }
 
-    .dot {
+    .pill .dot {
       width: 8px;
       height: 8px;
-      border-radius: 50%;
+      border-radius: 999px;
       background: var(--accent);
-      box-shadow: 0 0 10px var(--accent-glow);
+      box-shadow: 0 0 8px var(--accent-glow);
     }
 
-    .stream {
-      background: rgba(15,23,42,0.8);
-      border: 1px solid #1e293b;
-      padding: 10px;
-      border-radius: 16px;
-      min-height: 250px;
-      max-height: 300px;
+    .pill.offline .dot {
+      background: #ef4444;
+      box-shadow: 0 0 8px rgba(239, 68, 68, 0.7);
+    }
+
+    .pill button {
+      border: none;
+      background: transparent;
+      color: var(--text);
+      cursor: pointer;
+      font-size: 0.7rem;
+    }
+
+    .section-label {
+      font-size: 0.78rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .hint {
+      font-size: 0.7rem;
+      color: #6b7280;
+    }
+
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 8px;
+    }
+
+    .quick-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 4px;
+    }
+
+    @media (max-width: 650px) {
+      .quick-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    .quick-card {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px 9px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.75rem;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.1s ease;
+    }
+
+    .quick-card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.8);
+      border-color: rgba(148, 163, 184, 0.75);
+    }
+
+    .quick-card[data-urgent="true"] {
+      border-color: var(--urgent);
+    }
+
+    .quick-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .quick-emoji {
+      font-size: 1.1rem;
+    }
+
+    .quick-main {
+      font-weight: 500;
+    }
+
+    .quick-sub {
+      font-size: 0.68rem;
+      color: var(--text-muted);
+    }
+
+    .emoji-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+    }
+
+    .emoji-btn {
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 9px;
+      background: rgba(15, 23, 42, 0.96);
+      cursor: pointer;
+      font-size: 1rem;
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.6);
+      transition: transform 0.08s ease, box-shadow 0.08s ease, border-color 0.1s ease;
+    }
+
+    .emoji-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 11px 24px rgba(0, 0, 0, 0.8);
+      border-color: rgba(148, 163, 184, 0.8);
+    }
+
+    .custom-row {
+      display: flex;
+      margin-top: 6px;
+      gap: 6px;
+    }
+
+    .custom-row input {
+      flex: 1;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96);
+      color: var(--text);
+      padding: 8px 12px;
+      font-size: 0.78rem;
+      outline: none;
+    }
+
+    .custom-row input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    .send-btn {
+      border-radius: 999px;
+      border: none;
+      background: radial-gradient(circle at top, #22c55e, #16a34a 60%, #166534 100%);
+      color: #022c22;
+      padding: 8px 13px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 10px 24px rgba(34, 197, 94, 0.6);
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+      white-space: nowrap;
+    }
+
+    .send-btn:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 30px rgba(34, 197, 94, 0.8);
+    }
+
+    .split {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .presence {
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px;
+      font-size: 0.76rem;
+      max-height: 80px;
       overflow-y: auto;
     }
 
+    .presence-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin: 2px 0;
+      padding: 2px 4px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .presence-avatar {
+      font-size: 1rem;
+    }
+
+    .presence-name {
+      font-weight: 500;
+    }
+
+    .presence-id {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+    }
+
+    .conversation {
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.95);
+      padding: 8px;
+      min-height: 220px;
+      max-height: 260px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .conversation-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 4px;
+      border-radius: 10px;
+    }
+
     .msg {
-      margin: 8px 0;
-      padding: 8px 12px;
+      max-width: 82%;
+      margin: 4px 0;
+      padding: 6px 10px;
       border-radius: 14px;
-      background: rgba(30,41,59,0.8);
-      border-right: 3px solid var(--accent);
+      font-size: 0.78rem;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid #374151;
+    }
+
+    .msg.me {
+      margin-left: auto;
+      border-left: 2px solid var(--accent);
     }
 
     .msg.them {
-      border-right: 3px solid var(--urgent);
+      margin-right: auto;
+      border-left: 2px solid var(--urgent);
     }
 
-    .emoji-row button,
-    .quick-grid button,
-    .send-btn {
-      cursor: pointer;
-      border: none;
-      border-radius: 12px;
-      background: rgba(15,23,42,0.9);
-      color: var(--text);
-      padding: 10px 14px;
-      margin: 4px;
-      font-size: 1rem;
-      box-shadow: 0 8px 20px rgba(0,0,0,0.5);
-      transition: 0.15s;
+    .msg-meta {
+      font-size: 0.65rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      display: flex;
+      justify-content: space-between;
     }
 
-    .emoji-row button:hover,
-    .quick-grid button:hover,
-    .send-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 28px rgba(0,0,0,0.7);
+    .msg-emoji {
+      margin-right: 6px;
     }
 
-    input {
-      width: 100%;
-      padding: 10px 14px;
+    .profile-edit {
+      font-size: 0.74rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .profile-edit-row {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .profile-input {
       border-radius: 999px;
-      border: 1px solid #1e293b;
-      background: rgba(15,23,42,0.95);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.96);
       color: var(--text);
+      padding: 4px 8px;
+      font-size: 0.74rem;
       outline: none;
-      margin-top: 6px;
+      width: 100%;
+      max-width: 150px;
+    }
+
+    .profile-input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent-soft);
+    }
+
+    .profile-avatar-input {
+      max-width: 60px;
+    }
+
+    .profile-save-btn {
+      border: none;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent);
+      padding: 4px 8px;
+      font-size: 0.7rem;
+      cursor: pointer;
+    }
+
+    .profile-save-btn:hover {
+      background: rgba(56, 189, 248, 0.25);
     }
 
   </style>
 </head>
-
 <body>
-  <div class="box">
+  <div class="shell">
     <header>
-      <h2>Quiet Please – Device B</h2>
-      <div id="status" class="pill"><span class="dot"></span> Connecting...</div>
+      <div class="logo-title">
+        <div class="logo-pill">🤫</div>
+        <div class="titles">
+          <h2>Quiet Please – Device A</h2>
+          <span>Silent messaging for quiet spaces</span>
+        </div>
+      </div>
+      <div class="status-area">
+        <div id="wsStatus" class="pill">
+          <div class="dot"></div><span>Connecting…</span>
+        </div>
+      </div>
     </header>
 
-    <h3>Quick Cards</h3>
-    <div class="quick-grid">
-      <button onclick="sendCard('🖐️','I need help')">🖐️ I need help</button>
-      <button onclick="sendCard('✅','I\\'m done')">✅ I'm done</button>
-      <button onclick="sendCard('☕','Break?')">☕ Break?</button>
-      <button onclick="sendCard('👋','Talk later')">👋 Talk later</button>
-      <button onclick="sendCard('🤫','Too loud')">🤫 Too loud</button>
-      <button onclick="sendCard('⚠️','Urgent', true)">⚠️ Urgent</button>
-    </div>
+    <!-- Profile section -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Profile</div>
+        <div class="hint">Edit and it updates for everyone</div>
+      </div>
+      <div class="profile-edit">
+        <div class="profile-edit-row">
+          <span>Display name:</span>
+          <input id="profileName" class="profile-input" />
+        </div>
+        <div class="profile-edit-row">
+          <span>Avatar:</span>
+          <input id="profileAvatar" class="profile-input profile-avatar-input" />
+          <button id="saveProfileBtn" class="profile-save-btn">Save</button>
+        </div>
+      </div>
+    </section>
 
-    <h3>Emotional Ping</h3>
-    <div class="emoji-row">
-      <button onclick="sendEmoji('😀')">😀</button>
-      <button onclick="sendEmoji('😌')">😌</button>
-      <button onclick="sendEmoji('😰')">😰</button>
-      <button onclick="sendEmoji('🤯')">🤯</button>
-      <button onclick="sendEmoji('😴')">😴</button>
-      <button onclick="sendEmoji('🎉')">🎉</button>
-    </div>
+    <!-- Presence section -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Online users</div>
+        <div class="hint">Updates in real time</div>
+      </div>
+      <div id="presenceList" class="presence"></div>
+    </section>
 
-    <h3>Custom Whisper</h3>
-    <input id="customInput" placeholder="Type a silent message..." />
-    <button class="send-btn" onclick="sendCustom()">Send</button>
+    <!-- Quick cards -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Quick cards</div>
+        <div class="hint">Tap to send silently</div>
+      </div>
+      <div class="quick-grid" id="quickGrid"></div>
+    </section>
 
-    <h3>Silent Stream</h3>
-    <div class="stream" id="stream"></div>
+    <!-- Emojis -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Emotional ping</div>
+        <div class="hint">Send just a feeling</div>
+      </div>
+      <div class="emoji-row" id="emojiRow"></div>
+    </section>
+
+    <!-- Custom message -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Custom whisper</div>
+        <div class="hint">Press Enter or Send</div>
+      </div>
+      <div class="custom-row">
+        <input id="customInput" placeholder="Type a silent message…" />
+        <button class="send-btn" id="sendBtn">📨 Send</button>
+      </div>
+    </section>
+
+    <!-- Conversation -->
+    <section class="conversation">
+      <div class="row-between">
+        <div class="section-label">Silent stream</div>
+        <div class="hint">You = blue edge, others = red edge</div>
+      </div>
+      <div class="conversation-body" id="conversationBody"></div>
+    </section>
   </div>
 
   <script>
-    const WS_URL = "wss://quietplease.onrender.com";
-    const socket = new WebSocket(WS_URL);
-
-    const statusEl = document.getElementById("status");
-    const streamEl = document.getElementById("stream");
-
-    socket.onopen = () => {
-      statusEl.innerHTML = '<span class="dot"></span> Connected';
+    // === CONFIG ===
+    const DEVICE_ID = "A";
+    const DEFAULT_PROFILE = {
+      id: DEVICE_ID,
+      name: "Device A",
+      avatar: "🧊",
+      color: "#38bdf8",
     };
 
-    socket.onclose = () => {
-      statusEl.innerHTML = '<span class="dot" style="background:#ef4444"></span> Disconnected';
-    };
+    const WS_URL = "wss://quietplease.onrender.com"; // your Render URL
 
-    socket.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      renderMessage(msg);
-    };
+    const QUICK_CARDS = [
+      { emoji: "🖐️", text: "I need help", urgent: false },
+      { emoji: "✅", text: "I'm done", urgent: false },
+      { emoji: "☕", text: "Break?", urgent: false },
+      { emoji: "👋", text: "Talk later", urgent: false },
+      { emoji: "🤫", text: "Too loud", urgent: false },
+      { emoji: "⚠️", text: "Urgent", urgent: true },
+    ];
 
-    function send(type, emoji, text, urgent=false) {
+    const EMOJIS = ["😀", "😌", "😰", "🤯", "😴", "🎉"];
+
+    // === DOM ===
+    const wsStatusEl = document.getElementById("wsStatus");
+    const presenceListEl = document.getElementById("presenceList");
+    const quickGridEl = document.getElementById("quickGrid");
+    const emojiRowEl = document.getElementById("emojiRow");
+    const convBodyEl = document.getElementById("conversationBody");
+    const customInputEl = document.getElementById("customInput");
+    const sendBtnEl = document.getElementById("sendBtn");
+    const profileNameEl = document.getElementById("profileName");
+    const profileAvatarEl = document.getElementById("profileAvatar");
+    const saveProfileBtnEl = document.getElementById("saveProfileBtn");
+
+    let socket = null;
+    let profile = { ...DEFAULT_PROFILE };
+
+    // === UI helpers ===
+    function setWsStatus(connected) {
+      if (connected) {
+        wsStatusEl.classList.remove("offline");
+        wsStatusEl.innerHTML = '<div class="dot"></div><span>Connected</span>';
+      } else {
+        wsStatusEl.classList.add("offline");
+        wsStatusEl.innerHTML = '<div class="dot"></div><span>Disconnected</span>';
+      }
+    }
+
+    function renderPresence(users) {
+      presenceListEl.innerHTML = "";
+      if (!users || users.length === 0) {
+        presenceListEl.textContent = "No users online.";
+        return;
+      }
+      users.forEach((u) => {
+        const row = document.createElement("div");
+        row.className = "presence-item";
+        const avatarSpan = document.createElement("span");
+        avatarSpan.className = "presence-avatar";
+        avatarSpan.textContent = u.avatar || "🙂";
+
+        const nameSpan = document.createElement("span");
+        nameSpan.className = "presence-name";
+        nameSpan.textContent = u.name || `Device ${u.id || "?"}`;
+
+        const idSpan = document.createElement("span");
+        idSpan.className = "presence-id";
+        idSpan.textContent = u.id ? `(${u.id})` : "";
+
+        row.appendChild(avatarSpan);
+        row.appendChild(nameSpan);
+        row.appendChild(idSpan);
+        presenceListEl.appendChild(row);
+      });
+    }
+
+    function renderMessage(msg) {
+      const isMe = msg.from && msg.from.id === DEVICE_ID;
+      const div = document.createElement("div");
+      div.className = "msg " + (isMe ? "me" : "them");
+
+      const timeStr =
+        msg.time ||
+        new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+      const emojiPart = msg.emoji ? '<span class="msg-emoji">' + msg.emoji + "</span>" : "";
+      const fromName = msg.from ? msg.from.name || msg.from.id : "Unknown";
+
+      div.innerHTML = `
+        <div>${emojiPart}${msg.text || ""}</div>
+        <div class="msg-meta">
+          <span>${fromName}</span>
+          <span>${timeStr}</span>
+        </div>
+      `;
+      convBodyEl.appendChild(div);
+      convBodyEl.scrollTop = convBodyEl.scrollHeight;
+    }
+
+    function renderQuickCards() {
+      quickGridEl.innerHTML = "";
+      QUICK_CARDS.forEach((card) => {
+        const btn = document.createElement("button");
+        btn.className = "quick-card";
+        if (card.urgent) btn.dataset.urgent = "true";
+        btn.innerHTML = `
+          <div class="quick-title">
+            <span class="quick-emoji">${card.emoji}</span>
+            <span class="quick-main">${card.text}</span>
+          </div>
+          <div class="quick-sub">${card.urgent ? "Urgent" : "Tap to send"}</div>
+        `;
+        btn.addEventListener("click", () => {
+          sendChat(card.emoji, card.text, card.urgent);
+        });
+        quickGridEl.appendChild(btn);
+      });
+    }
+
+    function renderEmojis() {
+      emojiRowEl.innerHTML = "";
+      EMOJIS.forEach((e) => {
+        const btn = document.createElement("button");
+        btn.className = "emoji-btn";
+        btn.textContent = e;
+        btn.addEventListener("click", () => {
+          sendChat(e, e, false);
+        });
+        emojiRowEl.appendChild(btn);
+      });
+    }
+
+    // === WebSocket & messaging ===
+    function connectWs() {
+      socket = new WebSocket(WS_URL);
+
+      socket.addEventListener("open", () => {
+        setWsStatus(true);
+        sendProfile(); // send initial profile
+      });
+
+      socket.addEventListener("close", () => {
+        setWsStatus(false);
+        // Optional: auto-retry after a delay
+        setTimeout(connectWs, 2000);
+      });
+
+      socket.addEventListener("message", (event) => {
+        try {
+          const msg = JSON.parse(event.data);
+          if (msg.type === "presence") {
+            renderPresence(msg.users);
+          } else if (msg.type === "chat") {
+            renderMessage(msg);
+          }
+        } catch (e) {
+          console.error("Bad message", e);
+        }
+      });
+    }
+
+    function sendProfile() {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
       const payload = {
-        sender: "B",
-        type,
-        emoji,
-        text,
-        urgent,
-        time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        type: "profile",
+        id: profile.id,
+        name: profile.name,
+        avatar: profile.avatar,
+        color: profile.color,
       };
       socket.send(JSON.stringify(payload));
     }
 
-    function sendCard(emoji, text, urgent=false) {
-      send("card", emoji, text, urgent);
+    function sendChat(emoji, text, urgent = false) {
+      if (!socket || socket.readyState !== WebSocket.OPEN) return;
+      const payload = {
+        type: "chat",
+        from: profile,
+        emoji,
+        text,
+        urgent,
+        time: new Date().toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
+      };
+      socket.send(JSON.stringify(payload));
     }
 
-    function sendEmoji(emoji) {
-      send("emoji", emoji, emoji);
-    }
-
-    function sendCustom() {
-      const val = document.getElementById("customInput").value.trim();
+    // === Event handlers ===
+    sendBtnEl.addEventListener("click", () => {
+      const val = customInputEl.value.trim();
       if (!val) return;
-      send("custom", "💬", val);
-      document.getElementById("customInput").value = "";
+      sendChat("💬", val, false);
+      customInputEl.value = "";
+      customInputEl.focus();
+    });
+
+    customInputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendBtnEl.click();
+      }
+    });
+
+    saveProfileBtnEl.addEventListener("click", () => {
+      const newName = profileNameEl.value.trim() || DEFAULT_PROFILE.name;
+      const newAvatar = profileAvatarEl.value.trim() || DEFAULT_PROFILE.avatar;
+      profile.name = newName;
+      profile.avatar = newAvatar;
+      sendProfile();
+    });
+
+    // === Init UI ===
+    function init() {
+      profileNameEl.value = profile.name;
+      profileAvatarEl.value = profile.avatar;
+      renderQuickCards();
+      renderEmojis();
+      connectWs();
     }
 
-    function renderMessage(msg) {
-      const div = document.createElement("div");
-      div.className = "msg " + (msg.sender === "B" ? "" : "them");
-      div.innerHTML = `${msg.emoji} ${msg.text} <br><small>${msg.sender} • ${msg.time}</small>`;
-      streamEl.appendChild(div);
-      streamEl.scrollTop = streamEl.scrollHeight;
-    }
+    init();
   </script>
 </body>
 </html>
