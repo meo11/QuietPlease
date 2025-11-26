@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Quiet Please – Device</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- External stylesheet -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="shell">
+
+    <!-- HEADER ------------------------------------------------------------ -->
+    <header>
+      <div class="logo-title">
+        <div id="logoPill" class="logo-pill">🤫</div>
+        <div class="titles">
+          <h2 id="deviceTitle">Quiet Please</h2>
+          <span>Silent messaging for quiet spaces</span>
+        </div>
+      </div>
+
+      <div class="status-area">
+        <div id="wsStatus" class="pill">
+          <div class="dot"></div><span>Connecting…</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- PROFILE SECTION ----------------------------------------------------- -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Profile</div>
+        <div class="hint">Updates live for all users</div>
+      </div>
+
+      <div class="profile-edit">
+        <div class="profile-edit-row">
+          <span>Display name:</span>
+          <input id="profileName" class="profile-input" />
+        </div>
+
+        <div class="profile-edit-row">
+          <span>Avatar:</span>
+          <input id="profileAvatar" class="profile-input profile-avatar-input" />
+          <button id="saveProfileBtn" class="profile-save-btn">Save</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRESENCE SECTION ---------------------------------------------------- -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Online users</div>
+        <div class="hint">Real-time updates</div>
+      </div>
+
+      <div id="presenceList" class="presence"></div>
+    </section>
+
+    <!-- QUICK CARDS --------------------------------------------------------- -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Quick cards</div>
+        <div class="hint">Tap to send silently</div>
+      </div>
+
+      <div class="quick-grid" id="quickGrid"></div>
+    </section>
+
+    <!-- EMOJIS -------------------------------------------------------------- -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Emotional ping</div>
+        <div class="hint">Send a feeling</div>
+      </div>
+
+      <div class="emoji-row" id="emojiRow"></div>
+    </section>
+
+    <!-- CUSTOM MESSAGE ------------------------------------------------------ -->
+    <section>
+      <div class="row-between">
+        <div class="section-label">Custom whisper</div>
+        <div class="hint">Press Enter or Send</div>
+      </div>
+
+      <div class="custom-row">
+        <input id="customInput" placeholder="Type a silent message…" />
+        <button class="send-btn" id="sendBtn">📨 Send</button>
+      </div>
+    </section>
+
+    <!-- CONVERSATION -------------------------------------------------------- -->
+    <section class="conversation">
+      <div class="row-between">
+        <div class="section-label">Silent stream</div>
+        <div class="hint">You = your color ● others = red ●</div>
+      </div>
+
+      <div class="conversation-body" id="conversationBody"></div>
+    </section>
+
+  </div>
+
+  <!-- SCRIPT -------------------------------------------------------------- -->
+  <script>
+    // ============================================================
+    //  URL PARAMETERS: id, color, avatar
+    // ============================================================
+    const params = new URLSearchParams(window.location.search);
+    const DEVICE_ID = params.get("id") || "Unknown";
+    const PROFILE_COLOR = params.get("color") || "#38bdf8";
+    const PROFILE_AVATAR = params.get("avatar") || "🙂";
+
+    // Update title + pill color
+    document.getElementById("deviceTitle").textContent = `Quiet Please – ${DEVICE_ID}`;
+    document.getElementById("logoPill").style.boxShadow =
+      `0 0 20px ${PROFILE_COLOR}`;
+    document.getElementById("logoPill").style.borderColor = PROFILE_COLOR;
+
+    // ============================================================
+    //  CONFIG
+    // ============================================================
+    const WS_URL = "wss://quietplease.onrender.com";
+
+    const QUICK_CARDS = [
+      { emoji: "✋", text: "I need help", urgent: false },
+      { emoji: "✅", text: "I'm done", urgent: false },
+      { emoji: "☕", text: "Break?", urgent: false },
+      { emoji: "👋", text: "Talk later", urgent: false },
+      { emoji: "🤫", text: "Too loud", urgent: false },
+      { emoji: "⚠️", text: "Urgent", urgent: true },
+    ];
+
+    const EMOJIS = ["😀", "😌", "😰", "🤯", "😴", "🎉"];
+
+    const DEFAULT_PROFILE = {
+      id: DEVICE_ID,
+      name: DEVICE_ID,
+      avatar: PROFILE_AVATAR,
+      color: PROFILE_COLOR,
+    };
+
+    // ============================================================
+    //  DOM ELEMENTS
+    // ============================================================
+    const wsStatusEl = document.getElementById("wsStatus");
+    const presenceListEl = document.getElementById("presenceList");
+    const quickGridEl = document.getElementById("quickGrid");
+    const emojiRowEl = document.getElementById("emojiRow");
+    const convBodyEl = document.getElementById("conversationBody");
+    const customInputEl = document.getElementById("customInput");
+    const sendBtnEl = document.getElementById("sendBtn");
+    const profileNameEl = document.getElementById("profileName");
+    const profileAvatarEl = document.getElementById("profileAvatar");
+    const saveProfileBtnEl = document.getElementById("saveProfileBtn");
+
+    let socket = null;
+    let profile = { ...DEFAULT_PROFILE };
+
+    // ============================================================
+    //  STATUS / PRESENCE
+    // ============================================================
+    function setWsStatus(connected) {
+      wsStatusEl.classList.toggle("offline", !connected);
+      wsStatusEl.innerHTML = connected
+        ? `<div class="dot" style="background:${PROFILE_COLOR}"></div><span>Connected</span>`
+        : `<div class="dot"></div><span>Disconnected</span>`;
+    }
+
+    function renderPresence(users) {
+      presenceListEl.innerHTML = "";
+
+      if (!users.length) {
+        presenceListEl.textContent = "No users online.";
+        return;
+      }
+
+      users.forEach((u) => {
+        const item = document.createElement("div");
+        item.className = "presence-item";
+        item.innerHTML = `
+          <span class="presence-avatar">${u.avatar}</span>
+          <span class="presence-name">${u.name}</span>
+          <span class="presence-id">(${u.id})</span>
+        `;
+        presenceListEl.appendChild(item);
+      });
+    }
+
+    // ============================================================
+    //  MESSAGES
+    // ============================================================
+    function renderMessage(msg) {
+      const isMe = msg.from.id === DEVICE_ID;
+
+      const div = document.createElement("div");
+      div.className = "msg " + (isMe ? "me" : "them");
+
+      if (isMe) {
+        div.style.borderLeft = `3px solid ${PROFILE_COLOR}`;
+      }
+
+      let content = msg.text;
+      if (msg.emoji && msg.text && msg.text !== msg.emoji) {
+        content = `${msg.emoji} ${msg.text}`;
+      }
+      if (msg.emoji && (!msg.text || msg.text === msg.emoji)) {
+        content = msg.emoji;
+      }
+
+      div.innerHTML = `
+        <div>${content}</div>
+        <div class="msg-meta">
+          <span>${msg.from.name}</span>
+          <span>${msg.time}</span>
+        </div>
+      `;
+
+      convBodyEl.appendChild(div);
+      convBodyEl.scrollTop = convBodyEl.scrollHeight;
+    }
+
+    // ============================================================
+    //  QUICK CARDS & EMOJIS
+    // ============================================================
+    function renderQuickCards() {
+      quickGridEl.innerHTML = "";
+      QUICK_CARDS.forEach((card) => {
+        const btn = document.createElement("button");
+        btn.className = "quick-card";
+        if (card.urgent) btn.dataset.urgent = "true";
+
+        btn.innerHTML = `
+          <div class="quick-title">
+            <span class="quick-emoji">${card.emoji}</span>
+            <span class="quick-main">${card.text}</span>
+          </div>
+          <div class="quick-sub">
+            ${card.urgent ? "Urgent" : "Tap to send"}
+          </div>
+        `;
+
+        btn.onclick = () => sendChat(card.emoji, card.text, card.urgent);
+        quickGridEl.appendChild(btn);
+      });
+    }
+
+    function renderEmojis() {
+      emojiRowEl.innerHTML = "";
+      EMOJIS.forEach((e) => {
+        const btn = document.createElement("button");
+        btn.className = "emoji-btn";
+        btn.textContent = e;
+        btn.onclick = () => sendChat(e, e, false);
+        emojiRowEl.appendChild(btn);
+      });
+    }
+
+    // ============================================================
+    //  WEBSOCKET
+    // ============================================================
+    function connectWs() {
+      socket = new WebSocket(WS_URL);
+
+      socket.onopen = () => {
+        setWsStatus(true);
+        sendProfile();
+      };
+
+      socket.onclose = () => {
+        setWsStatus(false);
+        setTimeout(connectWs, 2000);
+      };
+
+      socket.onmessage = (evt) => {
+        const msg = JSON.parse(evt.data);
+        if (msg.type === "presence") return renderPresence(msg.users);
+        if (msg.type === "chat") return renderMessage(msg);
+      };
+    }
+
+    function sendProfile() {
+      if (socket.readyState !== WebSocket.OPEN) return;
+      socket.send(JSON.stringify({ type: "profile", ...profile }));
+    }
+
+    function sendChat(emoji, text, urgent = false) {
+      if (socket.readyState !== WebSocket.OPEN) return;
+      socket.send(
+        JSON.stringify({
+          type: "chat",
+          from: profile,
+          emoji,
+          text,
+          urgent,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        })
+      );
+    }
+
+    // ============================================================
+    //  EVENT LISTENERS
+    // ============================================================
+    sendBtnEl.onclick = () => {
+      const value = customInputEl.value.trim();
+      if (!value) return;
+      sendChat("💬", value, false);
+      customInputEl.value = "";
+    };
+
+    customInputEl.onkeydown = (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        sendBtnEl.click();
+      }
+    };
+
+    saveProfileBtnEl.onclick = () => {
+      profile.name = profileNameEl.value.trim() || DEVICE_ID;
+      profile.avatar = profileAvatarEl.value.trim() || "🙂";
+      sendProfile();
+    };
+
+    // ============================================================
+    //  INIT
+    // ============================================================
+    function init() {
+      profileNameEl.value = profile.name;
+      profileAvatarEl.value = profile.avatar;
+      renderQuickCards();
+      renderEmojis();
+      connectWs();
+    }
+
+    init();
+  </script>
+
+</body>
+</html>
