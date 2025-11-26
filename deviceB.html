@@ -503,7 +503,7 @@
     const WS_URL = "wss://quietplease.onrender.com"; // your Render URL
 
     const QUICK_CARDS = [
-      { emoji: "🖐️", text: "I need help", urgent: false },
+      { emoji: "🧐🏽", text: "I need help", urgent: false },
       { emoji: "✅", text: "I'm done", urgent: false },
       { emoji: "☕", text: "Break?", urgent: false },
       { emoji: "👋", text: "Talk later", urgent: false },
@@ -576,11 +576,25 @@
         msg.time ||
         new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 
-      const emojiPart = msg.emoji ? '<span class="msg-emoji">' + msg.emoji + "</span>" : "";
       const fromName = msg.from ? msg.from.name || msg.from.id : "Unknown";
 
+      let content = "";
+
+      if (msg.text && msg.emoji && msg.text !== msg.emoji) {
+        // message uses both emoji + text
+        content = `${msg.emoji} ${msg.text}`;
+      }
+      else if (msg.text && (!msg.emoji || msg.text === msg.emoji)) {
+        // text-only OR emoji-only message
+        content = msg.text;
+      }
+      else if (msg.emoji) {
+        // emoji-only
+        content = msg.emoji;
+      }
+
       div.innerHTML = `
-        <div>${emojiPart}${msg.text || ""}</div>
+        <div>${content}</div>
         <div class="msg-meta">
           <span>${fromName}</span>
           <span>${timeStr}</span>
